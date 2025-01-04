@@ -1,7 +1,8 @@
 import React, {useState} from "react";
 import 'bootstrap/dist/css/bootstrap.min.css';
 import {AsyncTypeahead} from 'react-bootstrap-typeahead'
-const SEARCH_URI = 'https://api.github.com/search/users';
+const SEARCH_URI = 'http://localhost:5050/ai/v1/api/search/search-conversations';
+//const SEARCH_URI = 'https://api.github.com/search/users';
 
 const AsyncExample = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -10,13 +11,26 @@ const AsyncExample = () => {
   const handleSearch = (query) => {
     setIsLoading(true);
 
-    fetch(`${SEARCH_URI}?q=${query}+in:login&page=1&per_page=50`)
+    fetch(`${SEARCH_URI}/${query}`)
       .then((resp) => resp.json())
-      .then(({ items }) => {
-        setOptions(items);
+      .then(({ data }) => {
+        setOptions(data);
         setIsLoading(false);
-      });
+        
+    });  
   };
+
+  const limitWords = (text, wordLimit) => {
+    const words = text.split(' '); // Split the string into words
+    if (words.length <= wordLimit) return text; // Return the original text if within limit
+    return words.slice(0, wordLimit).join(' ') + '...'; // Limit and add ellipsis
+  }
+
+  const onSearchClick = (option) => {
+    console.log(option);
+    
+  }
+
 
   // Bypass client-side filtering by returning `true`. Results are already
   // filtered by the search endpoint, so no need to do it again.
@@ -27,23 +41,15 @@ const AsyncExample = () => {
       filterBy={filterBy}
       id="async-example"
       isLoading={isLoading}
-      labelKey="login"
       minLength={3}
       onSearch={handleSearch}
+      onChange={(selectedOption) => onSearchClick(selectedOption)}
+      labelKey="content"
       options={options}
       placeholder="Search for a Github user..."
       renderMenuItemChildren={(option) => (
         <>
-          <img
-            alt={option.login}
-            src={option.avatar_url}
-            style={{
-              height: '24px',
-              marginRight: '10px',
-              width: '24px',
-            }}
-          />
-          <span>{option.login}</span>
+          <span>{limitWords(option.content, 10) }</span>
         </>
       )}
     />
